@@ -829,7 +829,7 @@ static double minus_ad_log_lkl(double bdev, void *ap) {
 
     int n1, n2;
     get_max_sum(data->ad0_arr, data->ad1_arr, data->n, data->imap, &n1, &n2);
-    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev, data->ad_rho, n1, n2);
+    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev, 0, n1, n2);
 
     double ret = 0.0;
     for (int i = 0; i < data->n; i++) {
@@ -876,7 +876,7 @@ static float *lrr_ad_emis_log_lkl(const float *lrr, const int16_t *ad0, const in
         float ldev = i == 0 ? 0.0f : -logf(1.0f - 2.0f * bdev_lrr_baf_arr[i - 1]) / (float)M_LN2 * lrr_hap2dip;
         float bdev = i == 0 ? 0.0f : fabsf(bdev_lrr_baf_arr[i - 1]);
         beta_binom_t *beta_binom = i == 0 ? beta_binom_null : beta_binom_alt;
-        beta_binom_update(beta_binom, 0.5f + bdev, ad_rho, n1, n2);
+        beta_binom_update(beta_binom, 0.5f + bdev, 0, n1, n2);
 
         for (int t = 0; t < T; t++) {
             float x = imap ? lrr[imap[t]] : lrr[t];
@@ -914,7 +914,7 @@ static float *ad_phase_emis_log_lkl(const int16_t *ad0, const int16_t *ad1, cons
         int n1, n2;
         get_max_sum(ad0, ad1, T, imap, &n1, &n2);
         beta_binom_t *beta_binom = i == 0 ? beta_binom_null : beta_binom_alt;
-        beta_binom_update(beta_binom, 0.5f + bdev, ad_rho, n1, n2);
+        beta_binom_update(beta_binom, 0.5f + bdev, 0, n1, n2);
 
         for (int t = 0; t < T; t++) {
             int16_t a = imap ? ad0[imap[t]] : ad0[t];
@@ -933,8 +933,8 @@ static int cnp_edge_is_not_cn2_lrr_ad(const float *lrr, int16_t *ad0, int16_t *a
                                       float lrr_sd, float ad_rho, float ldev, float bdev) {
     int n1, n2;
     get_max_sum(ad0, ad1, n, NULL, &n1, &n2);
-    beta_binom_update(beta_binom_null, 0.5f, ad_rho, n1, n2);
-    beta_binom_update(beta_binom_alt, 0.5f + bdev, ad_rho, n1, n2);
+    beta_binom_update(beta_binom_null, 0.5f, 0, n1, n2);
+    beta_binom_update(beta_binom_alt, 0.5f + bdev, 0, n1, n2);
 
     // test left edge
     float sum_log_lkl = 0.0f;
@@ -992,8 +992,8 @@ static double minus_lrr_ad_lod(double bdev_lrr_baf, void *ap) {
     float ldev = -logf(1.0f - 2.0f * (float)bdev_lrr_baf) / (float)M_LN2 * data->lrr_hap2dip;
     int n1, n2;
     get_max_sum(data->ad0_arr, data->ad1_arr, data->n, data->imap, &n1, &n2);
-    beta_binom_update(beta_binom_null, 0.5f, data->ad_rho, n1, n2);
-    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev_lrr_baf, data->ad_rho, n1, n2);
+    beta_binom_update(beta_binom_null, 0.5f, 0, n1, n2);
+    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev_lrr_baf, 0, n1, n2);
     float ret = 0.0f;
     for (int i = 0; i < data->n; i++) {
         float lrr = data->imap ? data->lrr_arr[data->imap[i]] : data->lrr_arr[i];
@@ -1030,8 +1030,8 @@ static double minus_ad_phase_lod(double bdev, void *ap) {
 
     int n1, n2;
     get_max_sum(data->ad0_arr, data->ad1_arr, data->n, data->imap, &n1, &n2);
-    beta_binom_update(beta_binom_null, 0.5f, data->ad_rho, n1, n2);
-    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev, data->ad_rho, n1, n2);
+    beta_binom_update(beta_binom_null, 0.5f, 0, n1, n2);
+    beta_binom_update(beta_binom_alt, 0.5f + (float)bdev, 0, n1, n2);
     float ret = 0.0f;
     for (int i = 0; i < data->n; i++) {
         int16_t ad0 = data->imap ? data->ad0_arr[data->imap[i]] : data->ad0_arr[i];
@@ -1082,7 +1082,7 @@ static double minus_lod_lkl_beta_binomial(double ad_rho, void *ap) {
     float ret = 0.0f;
     int n1, n2;
     get_max_sum(data->ad0_arr, data->ad1_arr, data->n, data->imap, &n1, &n2);
-    beta_binom_update(beta_binom_null, 0.5f, ad_rho, n1, n2);
+    beta_binom_update(beta_binom_null, 0.5f, 0, n1, n2);
     for (int i = 0; i < data->n; i++) {
         int16_t ad0 = data->imap ? data->ad0_arr[data->imap[i]] : data->ad0_arr[i];
         int16_t ad1 = data->imap ? data->ad1_arr[data->imap[i]] : data->ad1_arr[i];
