@@ -103,8 +103,8 @@ void beta_binom_update(beta_binom_t *self, double p, double rho, int n1, int n2)
         while (self->n1 < n1) {
             self->n1++;
             double log_n1 = log(self->n1);
-            self->log_gamma_alpha[self->n1] = self->log_gamma_alpha[self->n1 - 1] + log_alpha - log_n1;
-            self->log_gamma_beta[self->n1] = self->log_gamma_beta[self->n1 - 1] + log_beta - log_n1;
+            self->log_gamma_alpha[self->n1] = self->log_gamma_alpha[self->n1 - 1] - log_n1;
+            self->log_gamma_beta[self->n1] = self->log_gamma_beta[self->n1 - 1] - log_n1;
         }
 
         while (self->n2 < n2) {
@@ -112,23 +112,7 @@ void beta_binom_update(beta_binom_t *self, double p, double rho, int n1, int n2)
             self->log_gamma_alpha_beta[self->n2] = self->log_gamma_alpha_beta[self->n2 - 1] - log(self->n2);
         }
     } else {
-        double s = (1.0 - rho) / rho;
-        double alpha = p * s;
-        double beta = (1.0 - p) * s;
-
-        while (self->n1 < n1) {
-            self->n1++;
-            self->log_gamma_alpha[self->n1] =
-                self->log_gamma_alpha[self->n1 - 1] + log((alpha + (double)self->n1 - 1.0) / (double)self->n1);
-            self->log_gamma_beta[self->n1] =
-                self->log_gamma_beta[self->n1 - 1] + log((beta + (double)self->n1 - 1.0) / (double)self->n1);
-        }
-
-        while (self->n2 < n2) {
-            self->n2++;
-            self->log_gamma_alpha_beta[self->n2] = self->log_gamma_alpha_beta[self->n2 - 1]
-                                                   + log((alpha + beta + (double)self->n2 - 1.0) / (double)self->n2);
-        }
+        exit(99);
     }
 }
 
@@ -137,18 +121,22 @@ void beta_binom_update(beta_binom_t *self, double p, double rho, int n1, int n2)
  *  Returns the equivalent of dbeta_binom(a, a+b, p, (1 - rho) / rho, log=TRUE) from R package
  * rmutil
  */
-inline double beta_binom_log_unsafe(const beta_binom_t *self, int a, int b) {
-    return self->log_gamma_alpha[a] + self->log_gamma_beta[b] - self->log_gamma_alpha_beta[a + b];
+inline double beta_binom_log_unsafe(const beta_binom_t *self, int a, int b, double p) {
+    double log_alpha = log(p);
+    double log_beta = log(1.0 - p);
+    double log_n_choose_a = self->log_gamma_alpha[a] + self->log_gamma_beta[b] - self->log_gamma_alpha_beta[a + b];
+
+    return log_n_choose_a + a*log_alpha + b*log_beta;
 }
 
 /**
  *  Same as before but it performs boundary checking before computing the log likelihood
  */
-inline double beta_binom_log(beta_binom_t *self, int a, int b) {
+inline double beta_binom_log(beta_binom_t *self, int a, int b, double p) {
     if (a < 0 || b < 0) return NAN;
     if (a > self->n1 || b > self->n1 || a + b > self->n2)
         beta_binom_update(self, self->p, self->rho, a > b ? a : b, a + b);
-    return beta_binom_log_unsafe(self, a, b);
+    return beta_binom_log_unsafe(self, a, b, p);
 }
 
 #endif
